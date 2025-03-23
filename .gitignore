@@ -114,3 +114,9 @@ ENV/
 *.model
 
 !documentation/assets/scribble_example.png
+
+# Ignore .DS_Store files
+.DS_Store
+
+# Ignore nnUNet model directory
+nnUNet_results/
