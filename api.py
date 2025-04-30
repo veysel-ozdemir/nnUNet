@@ -5,6 +5,7 @@ import traceback
 import sys
 import time
 from flask import Flask, request, send_file, jsonify
+from flask_cors import CORS
 import numpy as np
 import torch
 import torch.backends.mps
@@ -23,6 +24,7 @@ from nnunetv2.inference.predict_from_raw_data import nnUNetPredictor
 from nnunetv2.imageio.natural_image_reader_writer import NaturalImage2DIO
 
 app = Flask(__name__)
+CORS(app)  # This allows all domains. You can restrict it if needed.
 
 # Configuration settings
 MODEL_DIR = os.environ.get(
