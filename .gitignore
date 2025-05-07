@@ -120,3 +120,5 @@ ENV/
 
 # Ignore nnUNet model directory
 nnUNet_results/
+
+!requirements.txt

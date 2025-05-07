@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+*.so
+*.ipynb
+documentation/
+LICENSE
+*.md
