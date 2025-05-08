@@ -1,0 +1,9 @@
+version: "3.9"
+
+services:
+  breast-segmentation-api:
+    container_name: nnunet-api
+    image: veyselch/nnunet-breast-cancer-api:latest
+    ports:
+      - "5050:5050"
+    restart: unless-stopped
