@@ -6,3 +6,6 @@ services:
       url: veyselch/nnunet-breast-cancer-api:render
     plan: free
     numInstances: 1
+    envVars:
+      - key: PORT
+        value: 5050
