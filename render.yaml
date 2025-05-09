@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: nnunet-api
+    runtime: image
+    image:
+      url: veyselch/nnunet-breast-cancer-api:render
+    plan: free
+    numInstances: 1
