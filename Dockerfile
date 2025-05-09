@@ -30,4 +30,4 @@ COPY . .
 EXPOSE 5050
 
 # Run gunicorn with 4 worker processes
-CMD ["gunicorn", "--bind", "0.0.0.0:5050", "--workers", "4", "--timeout", "120", "api:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5050", "--workers", "1", "--timeout", "120", "api:app"]
