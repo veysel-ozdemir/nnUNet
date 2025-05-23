@@ -4,6 +4,7 @@ import tempfile
 import traceback
 import sys
 import time
+import base64
 from flask import Flask, request, send_file, jsonify
 from flask_cors import CORS
 import numpy as np
@@ -207,7 +208,13 @@ def predict():
     - Red: Malignant tumor regions (class 2)
 
     Returns:
-        PNG image with the segmentation result as a colored overlay
+        JSON response with the following format:
+        {
+            "result": "<base64-encoded-png>",
+            "total_pixels": <total_pixel_count>,
+            "benign_pixels": <count_of_pixels_with_value_1>,
+            "malignant_pixels": <count_of_pixels_with_value_2>
+        }
     """
     try:
         # Make sure predictor is initialized
@@ -351,40 +358,37 @@ def predict():
                             seg_img[h // 2 : h // 2 + 20, w // 2 : w // 2 + 20] = 2
                             print("Added demo regions to the segmentation")
 
+                    # Calculate pixel counts from the segmentation result
+                    total_pixels = seg_img.size
+                    benign_pixels = np.count_nonzero(seg_img == 1)
+                    malignant_pixels = np.count_nonzero(seg_img == 2)
+
+                    print(
+                        f"Pixel counts - Total: {total_pixels}, Benign: {benign_pixels}, Malignant: {malignant_pixels}"
+                    )
+
                     # Colorize the segmentation result
                     colorized_img = colorize_segmentation(seg_img, original_img_array)
 
-                    # Convert numpy array to PIL Image and save
+                    # Convert numpy array to PIL Image
                     result_img = Image.fromarray(colorized_img)
-                    result_img.save(output_file)
-                    print(f"Colorized result saved to {output_file}")
 
-                    # Wait a moment to ensure the file is written
-                    time.sleep(0.5)
+                    # Convert the image to base64 for JSON response
+                    img_buffer = io.BytesIO()
+                    result_img.save(img_buffer, format="PNG")
+                    img_buffer.seek(0)
+                    img_base64 = base64.b64encode(img_buffer.getvalue()).decode("utf-8")
 
-                    # Verify the file was created
-                    if not os.path.exists(output_file):
-                        print(
-                            f"Warning: Could not find output file at {output_file} after saving"
-                        )
+                    # Create the JSON response
+                    response_data = {
+                        "result": img_base64,
+                        "total_pixels": int(total_pixels),
+                        "benign_pixels": int(benign_pixels),
+                        "malignant_pixels": int(malignant_pixels),
+                    }
 
-                        # Try alternative location by checking the temp directory
-                        print(
-                            f"Checking temp directory contents: {os.listdir(temp_dir)}"
-                        )
-
-                        # Try one more time with a different name
-                        alt_output = os.path.join(temp_dir, "alt_output.png")
-                        result_img.save(alt_output)
-
-                        if os.path.exists(alt_output):
-                            output_file = alt_output
-                            print(f"Using alternative output file: {alt_output}")
-                        else:
-                            return (
-                                jsonify({"error": "Failed to save prediction result"}),
-                                500,
-                            )
+                    print(f"Returning JSON response with pixel counts")
+                    return jsonify(response_data)
 
                 except Exception as direct_error:
                     print(f"Error during direct prediction: {str(direct_error)}")
@@ -393,10 +397,6 @@ def predict():
                         jsonify({"error": f"Prediction failed: {str(direct_error)}"}),
                         500,
                     )
-
-                # Return the file
-                print(f"Returning segmentation from {output_file}")
-                return send_file(output_file, mimetype="image/png")
 
             except Exception as pred_error:
                 print(f"Error during prediction: {str(pred_error)}")
